@@ -346,15 +346,52 @@ button:disabled {
 }
 #invoice {
   width: 210mm;
-  height: 295mm;          /* slightly under A4 to prevent overflow to page 2 */
+  height: 295mm;
   position: relative;
   font-family: 'Courier New', monospace;
-  font-size: 14px;
+  font-size: 13px;
   background: white;
   color: black;
-  overflow: hidden;       /* clip any sub-pixel spill */
+  overflow: hidden;
   page-break-after: avoid;
   page-break-inside: avoid;
+  padding: 28px 40px;
+}
+#invoice .slip-header {
+  text-align: center;
+  border-bottom: 1px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+#invoice .slip-title {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  font-family: Arial, sans-serif;
+}
+#invoice .slip-sub {
+  font-size: 10.5px;
+  margin-top: 5px;
+  font-family: Arial, sans-serif;
+}
+#invoice .slip-body { font-size: 13px; line-height: 24px; }
+#invoice .srow { position: relative; height: 24px; white-space: nowrap; }
+#invoice .lbl { display: inline-block; width: 115px; }
+#invoice .col { display: inline-block; width: 14px; }
+#invoice .val { display: inline-block; }
+#invoice .pd { position: absolute; right: 0; top: 0; }
+#invoice .wrow .wval  { position: absolute; left: 215px; width: 90px; text-align: right; }
+#invoice .wrow .wunit { position: absolute; left: 315px; width: 30px; }
+#invoice .wrow .wdate { position: absolute; left: 370px; width: 100px; }
+#invoice .wrow .wtime { position: absolute; left: 490px; width: 80px; }
+#invoice .slip-signature {
+  position: absolute;
+  top: 375px;
+  right: 50px;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
 }
 
 /* ===== TINY SCREENS ===== */
@@ -374,6 +411,12 @@ button:disabled {
 <body>
 
 <div class="app">
+  <!-- TICKET BAR -->
+  <div class="ticket-bar">
+    <span class="label">Next Ticket No.</span>
+    <span class="num">#<span id="nextTicket">0000</span></span>
+  </div>
+
   <!-- FORM -->
   <main class="form-card">
 
@@ -460,39 +503,61 @@ button:disabled {
 <!-- ===== HIDDEN PDF STAGE — original layout preserved exactly ===== -->
 <div class="pdf-stage">
   <div id="invoice">
-    <div style="position:absolute; top:38px; width:100%; text-align:center;">
-      <b style="font-size:22px;">PATEL WEIGH BRIDGE</b><br>
-      <span style="font-size:12px;">AT. PATEL WEIGH BRIDGE NR TORAN HOTEL, VALTHAN</span><br>
-      <span style="font-size:12px;">NH-8 KAMREJ-KADODARA HIGHWAY</span>
+
+    <!-- Header with single-line address + separator line -->
+    <div class="slip-header">
+      <div class="slip-title">PATEL WEIGH BRIDGE</div>
+      <div class="slip-sub">AT. PATEL WEIGH BRIDGE, NR TORAN HOTEL, VALTHAN, NH-8,KAMREJ-KADODARA HIGHWAY</div>
     </div>
-    <div style="position:absolute; top:130px; left:78px; line-height:24px;">
-      Ticket No :<br>
-      Customer_Na :<br>
-      Vehicle_No :<br>
-      Item_Name :<br>
-      Supplier_Name :<br>
-      Charges :<br>
-      Gross Weight :<br>
-      Tare Weight :<br>
-      Net Weight :
+
+    <!-- Body rows -->
+    <div class="slip-body">
+
+      <div class="srow">
+        <span class="lbl">Ticket No</span><span class="col">:</span><span class="val"><span id="ticket"></span></span>
+        <span class="pd">Print Date : <span id="date"></span></span>
+      </div>
+      <div class="srow">
+        <span class="lbl">Customer_Na</span><span class="col">:</span><span class="val"><span id="cname"></span></span>
+      </div>
+      <div class="srow">
+        <span class="lbl">Vehicle_No</span><span class="col">:</span><span class="val"><span id="vno"></span></span>
+      </div>
+      <div class="srow">
+        <span class="lbl">Item_Name</span><span class="col">:</span><span class="val"><span id="iname"></span></span>
+      </div>
+      <div class="srow">
+        <span class="lbl">Supplier_Name</span><span class="col">:</span><span class="val"><span id="sname"></span></span>
+      </div>
+      <div class="srow">
+        <span class="lbl">Charges</span><span class="col">:</span><span class="val"><span id="charge"></span></span>
+      </div>
+
+      <div class="srow wrow">
+        <span class="lbl">Gross Weight</span><span class="col">:</span>
+        <span class="wval"><span id="gweight"></span></span>
+        <span class="wunit">Kg</span>
+        <span class="wdate"><span id="gdate"></span></span>
+        <span class="wtime"><span id="gtime"></span></span>
+      </div>
+      <div class="srow wrow">
+        <span class="lbl">Tare Weight *</span><span class="col">:</span>
+        <span class="wval"><span id="tweight"></span></span>
+        <span class="wunit">Kg</span>
+        <span class="wdate"><span id="tdate"></span></span>
+        <span class="wtime"><span id="ttime"></span></span>
+      </div>
+      <div class="srow wrow">
+        <span class="lbl">Net Weight</span><span class="col">:</span>
+        <span class="wval"><span id="nweight"></span></span>
+        <span class="wunit">Kg</span>
+      </div>
+
     </div>
-    <div style="position:absolute; top:130px; left:255px; line-height:24px;">
-      <span id="ticket"></span><br>
-      <span id="cname"></span><br>
-      <span id="vno"></span><br>
-      <span id="iname"></span><br>
-      <span id="sname"></span><br>
-      <span id="charge"></span><br>
-      <span id="gweight"></span><br>
-      <span id="tweight"></span><br>
-      <span id="nweight"></span>
-    </div>
-    <div style="position:absolute; top:360px; right:90px;">
-      Print Date : <span id="date"></span>
-    </div>
-    <div style="position:absolute; top:470px; left:78px;">
-      Operator's Signature
-    </div>
+
+    <!-- Operator Signature -->
+    <div class="slip-signature">OPERATOR'S SIGNATURE</div>
+
   </div>
 </div>
 
@@ -500,7 +565,7 @@ button:disabled {
 /* ============ TICKET COUNTER ============ */
 function getNextTicket() {
   let t = Number(localStorage.getItem("ticketNo"));
-  if (!t || isNaN(t)) t = 6637;
+  if (!t || isNaN(t)) t = 0;
   return t + 1;
 }
 function refreshTicketDisplay() {
@@ -604,10 +669,17 @@ async function generatePDF() {
   document.getElementById("iname").innerText   = document.getElementById("item").value;
   document.getElementById("sname").innerText   = document.getElementById("supplier").value;
   document.getElementById("charge").innerText  = document.getElementById("charges").value;
-  document.getElementById("gweight").innerText = grossVal + " Kg";
-  document.getElementById("tweight").innerText = tareVal + " Kg";
-  document.getElementById("nweight").innerText = netVal + " Kg";
-  document.getElementById("date").innerText    = new Date().toLocaleString();
+  document.getElementById("gweight").innerText = grossVal;
+  document.getElementById("tweight").innerText = tareVal;
+  document.getElementById("nweight").innerText = netVal;
+
+  /* Date/time formatting — DD/MM/YYYY and HH:MM:SS */
+  const pad = n => String(n).padStart(2, '0');
+  const fmtDate = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+  const now = new Date();
+  document.getElementById("date").innerText  = fmtDate(now) + " " + fmtTime(now);
 
   /* Bring stage on-screen invisibly so html2canvas measures correctly */
   const stage = document.querySelector(".pdf-stage");
