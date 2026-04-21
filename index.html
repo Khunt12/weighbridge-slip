@@ -1,280 +1,669 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Weighbridge Slip Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F0F0F">
+<title>Patel Weigh Bridge — Slip Generator</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-/* ===== BODY ===== */
-body{
-  font-family: Arial, sans-serif;
-  margin:0;
-  padding:20px;
-  background:#f4f6f9;
+:root {
+  --bg: #F5F2EA;
+  --surface: #FFFFFF;
+  --ink: #0F0F0F;
+  --ink-soft: #4A4A4A;
+  --muted: #8A8A82;
+  --line: #1A1A1A;
+  --accent: #FF5722;
+  --accent-soft: #FFE4D6;
+  --grid-line: rgba(15, 15, 15, 0.05);
 }
 
-/* ===== FORM ===== */
-.form-box{
-  max-width:500px;
-  margin:auto;
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  min-height: 100vh;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-font-smoothing: antialiased;
 }
 
-h2{
-  text-align:center;
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
 }
 
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
+/* ===== HEADER ===== */
+.brand {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 18px 18px 16px;
+  position: relative;
+  margin-bottom: 14px;
+  border: 2px solid var(--line);
+  box-shadow: 6px 6px 0 var(--accent), 6px 6px 0 2px var(--line);
+}
+.brand .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.brand .eyebrow::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--accent);
+  display: inline-block;
+}
+.brand h1 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.brand .sub {
+  margin-top: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: rgba(245, 242, 234, 0.55);
+  letter-spacing: 0.05em;
 }
 
-.full{
-  grid-column:span 2;
+/* ===== TICKET BAR ===== */
+.ticket-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  margin-bottom: 14px;
+}
+.ticket-bar .label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+.ticket-bar .num {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.ticket-bar .num span { color: var(--accent); }
+
+/* ===== FORM CARD ===== */
+.form-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  padding: 16px;
+}
+.section-title {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px dashed var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .num-tag {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 2px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.section-title + .field { margin-top: 0; }
+
+.field { margin-bottom: 12px; }
+.field label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 500;
+  border: 2px solid var(--line);
+  background: #FAFAF6;
+  color: var(--ink);
+  border-radius: 0;
+  transition: background 0.12s, box-shadow 0.12s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input::placeholder { color: #C4C4BD; font-weight: 400; }
+.field input:focus {
+  outline: none;
+  background: #FFF7E6;
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+.field input.num-input {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  text-align: right;
 }
 
-label{
-  font-weight:600;
-  font-size:14px;
+.weights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.weights-grid .field { margin: 0; }
+
+/* ===== NET WEIGHT DISPLAY ===== */
+.net-display {
+  background: var(--ink);
+  color: var(--accent);
+  padding: 18px 18px;
+  margin-top: 4px;
+  border: 2px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.net-display::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0, transparent 10px, rgba(255,87,34,0.05) 10px, rgba(255,87,34,0.05) 11px);
+  pointer-events: none;
+}
+.net-display .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  position: relative;
+}
+.net-display .net-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.net-display .net-value {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 36px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.net-display .unit {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,87,34,0.6);
+  margin-left: 4px;
+}
+.net-display.empty .net-value,
+.net-display.empty .unit { color: rgba(255,255,255,0.2); }
+.net-display.warning {
+  background: #4A1F0F;
+}
+.net-display.warning .net-value { color: #FFB74D; }
+
+/* ===== ACTIONS ===== */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+button {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 16px 14px;
+  font-size: 14px;
+  border: 2px solid var(--line);
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:not(:disabled):active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.btn-secondary {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.btn-secondary:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--ink-soft);
+  color: var(--bg);
+}
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--ink);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 14px 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border: 2px solid var(--line);
+  box-shadow: 4px 4px 0 var(--accent);
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  max-width: 90vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast.show { bottom: 24px; }
+.toast.error { box-shadow: 4px 4px 0 #C62828; }
+.toast.success { box-shadow: 4px 4px 0 #2E7D32; }
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  margin-top: 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+.footer .dot { color: var(--accent); }
+
+/* ===== HIDDEN PDF STAGE ===== */
+.pdf-stage {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  pointer-events: none;
+}
+#invoice {
+  width: 210mm;
+  height: 295mm;          /* slightly under A4 to prevent overflow to page 2 */
+  position: relative;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  background: white;
+  color: black;
+  overflow: hidden;       /* clip any sub-pixel spill */
+  page-break-after: avoid;
+  page-break-inside: avoid;
 }
 
-input{
-  width:100%;
-  padding:10px;
-  margin-top:4px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  font-size:16px;
+/* ===== TINY SCREENS ===== */
+@media (max-width: 360px) {
+  .brand h1 { font-size: 26px; }
+  .actions { grid-template-columns: 1fr; }
 }
 
-button{
-  width:100%;
-  margin-top:20px;
-  padding:12px;
-  font-size:16px;
-  font-weight:bold;
-  border:none;
-  border-radius:10px;
-  background:#007bff;
-  color:white;
-  cursor:pointer;
+/* ===== TABLET / DESKTOP ===== */
+@media (min-width: 720px) {
+  .app { max-width: 560px; padding-top: 32px; }
+  .brand h1 { font-size: 36px; }
 }
-
-/* MOBILE */
-@media(max-width:600px){
-  .form-grid{
-    grid-template-columns:1fr;
-  }
-}
-
-/* ===== PDF WRAPPER ===== */
-#invoice-wrapper{
-  display:flex;
-  justify-content:center;
-  margin-top:40px;
-}
-
-/* ===== PDF AREA (FIXED) ===== */
-#invoice{
-  width:210mm;
-  min-height:297mm;
-  padding:20mm 15mm;
-  box-sizing:border-box;
-  position:relative;
-  font-family:'Courier New', monospace;
-  font-size:14px;
-  background:white;
-  overflow:hidden;
-  border:1px solid #ddd;
-}
-
-/* PRINT FIX */
-@media print {
-  #invoice {
-    page-break-after: avoid;
-    page-break-inside: avoid;
-  }
-}
-
 </style>
 </head>
 
 <body>
 
-<h2>Weighbridge Slip Generator</h2>
+<div class="app">
+  <!-- FORM -->
+  <main class="form-card">
 
-<div class="form-box">
+    <div class="section-title">
+      <span class="num-tag">01</span>
+      Party Details
+    </div>
 
-<div class="form-grid">
+    <div class="field">
+      <label for="customer">Customer Name</label>
+      <input id="customer" type="text" autocomplete="off" placeholder="Enter customer name">
+    </div>
 
-<div class="full">
-<label>Customer Name</label>
-<input id="customer">
-</div>
+    <div class="field">
+      <label for="vehicle">Vehicle Number</label>
+      <input id="vehicle" type="text"
+        oninput="this.value = this.value.toUpperCase()"
+        style="text-transform:uppercase; letter-spacing: 1px; font-weight:700;"
+        autocapitalize="characters"
+        autocomplete="off"
+        placeholder="GJ 05 AB 1234">
+    </div>
 
-<div>
-<label>Vehicle Number</label>
-<input id="vehicle"
-  oninput="this.value = this.value.toUpperCase()"
-  style="text-transform:uppercase"
-  autocapitalize="characters">
-</div>
+    <div class="field">
+      <label for="item">Item Name</label>
+      <input id="item" type="text" autocomplete="off" placeholder="e.g. Sand, Cement, Steel">
+    </div>
 
-<div>
-<label>Item Name</label>
-<input id="item">
-</div>
+    <div class="field">
+      <label for="supplier">Supplier Name</label>
+      <input id="supplier" type="text" autocomplete="off" placeholder="Enter supplier name">
+    </div>
 
-<div class="full">
-<label>Supplier Name</label>
-<input id="supplier">
-</div>
+    <div class="field">
+      <label for="charges">Charges (₹)</label>
+      <input id="charges" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+    </div>
 
-<div>
-<label>Charges</label>
-<input id="charges">
-</div>
+    <div class="section-title" style="margin-top: 22px;">
+      <span class="num-tag">02</span>
+      Weight Reading
+    </div>
 
-<div>
-<label>Gross Weight</label>
-<input id="gross" oninput="calcWeight()">
-</div>
+    <div class="weights-grid">
+      <div class="field">
+        <label for="gross">Gross (Kg)</label>
+        <input id="gross" type="text" inputmode="decimal" class="num-input" oninput="calcWeight()" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="tare">Tare (Kg)</label>
+        <input id="tare" type="text" inputmode="decimal" class="num-input" oninput="calcWeight()" placeholder="0">
+      </div>
+    </div>
 
-<div>
-<label>Tare Weight</label>
-<input id="tare" oninput="calcWeight()">
-</div>
+    <div class="net-display empty" id="netDisplay">
+      <div class="row">
+        <span class="net-label">◢ Net Weight</span>
+        <span>
+          <span class="net-value" id="netValue">—</span><span class="unit"> Kg</span>
+        </span>
+      </div>
+    </div>
 
-<div>
-<label>Net Weight</label>
-<input id="net" readonly>
-</div>
+    <input id="net" type="hidden">
 
-</div>
+    <div class="actions">
+      <button class="btn-secondary" type="button" onclick="resetForm()">Reset</button>
+      <button class="btn-primary" id="generateBtn" type="button" onclick="generatePDF()">
+        <span id="btnLabel">Generate PDF</span>
+      </button>
+    </div>
 
-<button onclick="generatePDF()">Download PDF</button>
+  </main>
 
-</div>
-
-<!-- ===== PREVIEW ===== -->
-<div id="invoice-wrapper">
-
-<div id="invoice">
-
-<!-- HEADER -->
-<div style="text-align:center; line-height:18px;">
-<b style="font-size:22px;">PATEL WEIGH BRIDGE</b><br>
-<span style="font-size:12px;">
-AT. PATEL WEIGH BRIDGE NR TORAN HOTEL, VALTHAN
-</span><br>
-<span style="font-size:12px;">
-NH-8 KAMREJ-KADODARA HIGHWAY
-</span>
-</div>
-
-<br><br>
-
-<!-- DATA -->
-<div style="display:flex; justify-content:space-between; line-height:26px;">
-
-<div>
-Ticket No :<br>
-Customer :<br>
-Vehicle :<br>
-Item :<br>
-Supplier :<br>
-Charges :<br>
-Gross Weight :<br>
-Tare Weight :<br>
-Net Weight :
-</div>
-
-<div style="text-align:right;">
-<span id="ticket"></span><br>
-<span id="cname"></span><br>
-<span id="vno"></span><br>
-<span id="iname"></span><br>
-<span id="sname"></span><br>
-<span id="charge"></span><br>
-<span id="gweight"></span><br>
-<span id="tweight"></span><br>
-<span id="nweight"></span>
-</div>
+  <div class="footer">
+    Patel Weigh Bridge <span class="dot">●</span> Operator Console
+  </div>
 
 </div>
 
-<br><br><br>
+<!-- TOAST -->
+<div class="toast" id="toast">Slip downloaded</div>
 
-<!-- FOOTER -->
-<div style="display:flex; justify-content:space-between;">
-<div>
-Operator's Signature
-</div>
-
-<div>
-Print Date : <span id="date"></span>
-</div>
-</div>
-
-</div>
+<!-- ===== HIDDEN PDF STAGE — original layout preserved exactly ===== -->
+<div class="pdf-stage">
+  <div id="invoice">
+    <div style="position:absolute; top:38px; width:100%; text-align:center;">
+      <b style="font-size:22px;">PATEL WEIGH BRIDGE</b><br>
+      <span style="font-size:12px;">AT. PATEL WEIGH BRIDGE NR TORAN HOTEL, VALTHAN</span><br>
+      <span style="font-size:12px;">NH-8 KAMREJ-KADODARA HIGHWAY</span>
+    </div>
+    <div style="position:absolute; top:130px; left:78px; line-height:24px;">
+      Ticket No :<br>
+      Customer_Na :<br>
+      Vehicle_No :<br>
+      Item_Name :<br>
+      Supplier_Name :<br>
+      Charges :<br>
+      Gross Weight :<br>
+      Tare Weight :<br>
+      Net Weight :
+    </div>
+    <div style="position:absolute; top:130px; left:255px; line-height:24px;">
+      <span id="ticket"></span><br>
+      <span id="cname"></span><br>
+      <span id="vno"></span><br>
+      <span id="iname"></span><br>
+      <span id="sname"></span><br>
+      <span id="charge"></span><br>
+      <span id="gweight"></span><br>
+      <span id="tweight"></span><br>
+      <span id="nweight"></span>
+    </div>
+    <div style="position:absolute; top:360px; right:90px;">
+      Print Date : <span id="date"></span>
+    </div>
+    <div style="position:absolute; top:470px; left:78px;">
+      Operator's Signature
+    </div>
+  </div>
 </div>
 
 <script>
-
-/* NET WEIGHT */
-function calcWeight(){
-let gross = Number(document.getElementById("gross").value);
-let tare = Number(document.getElementById("tare").value);
-
-if(gross && tare){
-  document.getElementById("net").value = gross - tare;
+/* ============ TICKET COUNTER ============ */
+function getNextTicket() {
+  let t = Number(localStorage.getItem("ticketNo"));
+  if (!t || isNaN(t)) t = 6637;
+  return t + 1;
 }
+function refreshTicketDisplay() {
+  document.getElementById("nextTicket").innerText = getNextTicket();
 }
+refreshTicketDisplay();
 
-/* TICKET */
-let ticketNumber = localStorage.getItem("ticketNo");
-if(!ticketNumber){ ticketNumber = 6637; }
-ticketNumber = Number(ticketNumber);
+/* ============ NET WEIGHT (live) ============ */
+function calcWeight() {
+  const grossEl = document.getElementById("gross");
+  const tareEl  = document.getElementById("tare");
+  const display = document.getElementById("netDisplay");
+  const value   = document.getElementById("netValue");
+  const netHidden = document.getElementById("net");
 
-/* GENERATE PDF */
-function generatePDF(){
+  const gross = parseFloat(grossEl.value);
+  const tare  = parseFloat(tareEl.value);
 
-ticketNumber++;
-localStorage.setItem("ticketNo", ticketNumber);
+  display.classList.remove("warning");
 
-/* FILL DATA */
-document.getElementById("ticket").innerText = ticketNumber;
-document.getElementById("cname").innerText = customer.value;
-document.getElementById("vno").innerText = vehicle.value;
-document.getElementById("iname").innerText = item.value;
-document.getElementById("sname").innerText = supplier.value;
-document.getElementById("charge").innerText = charges.value;
-document.getElementById("gweight").innerText = gross.value + " Kg";
-document.getElementById("tweight").innerText = tare.value + " Kg";
-document.getElementById("nweight").innerText = net.value + " Kg";
-document.getElementById("date").innerText = new Date().toLocaleString();
-
-let element = document.getElementById("invoice");
-
-/* PDF EXPORT */
-html2pdf().set({
-  margin: 0,
-  filename: 'weighbridge-slip.pdf',
-  image: { type: 'jpeg', quality: 1 },
-  html2canvas: { scale: 2, useCORS: true },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  pagebreak: { mode: ['avoid-all'] }
-}).from(element).save();
-
+  if (!isNaN(gross) && !isNaN(tare) && grossEl.value !== "" && tareEl.value !== "") {
+    const net = gross - tare;
+    netHidden.value = net;
+    value.innerText = net.toLocaleString('en-IN');
+    display.classList.remove("empty");
+    if (net <= 0) display.classList.add("warning");
+  } else {
+    netHidden.value = "";
+    value.innerText = "—";
+    display.classList.add("empty");
+  }
 }
 
+/* ============ TOAST ============ */
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.classList.remove("error", "success");
+  if (type) t.classList.add(type);
+  t.classList.add("show");
+  clearTimeout(window._tT);
+  window._tT = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ============ VALIDATION ============ */
+function validate() {
+  const required = [
+    { id: "customer", name: "Customer Name" },
+    { id: "vehicle",  name: "Vehicle Number" },
+    { id: "gross",    name: "Gross Weight" },
+    { id: "tare",     name: "Tare Weight" }
+  ];
+  for (const f of required) {
+    const el = document.getElementById(f.id);
+    if (!el.value.trim()) {
+      el.focus();
+      showToast("Required: " + f.name, "error");
+      return false;
+    }
+  }
+  const net = parseFloat(document.getElementById("gross").value) - parseFloat(document.getElementById("tare").value);
+  if (net <= 0) {
+    showToast("Net weight must be positive", "error");
+    document.getElementById("gross").focus();
+    return false;
+  }
+  return true;
+}
+
+/* ============ RESET ============ */
+function resetForm() {
+  ["customer","vehicle","item","supplier","charges","gross","tare","net"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  calcWeight();
+  showToast("Form cleared");
+  document.getElementById("customer").focus();
+}
+
+/* ============ PDF GENERATION ============ */
+async function generatePDF() {
+  if (!validate()) return;
+
+  const btn = document.getElementById("generateBtn");
+  const label = document.getElementById("btnLabel");
+  btn.disabled = true;
+  label.innerHTML = '<span class="spinner"></span> Generating';
+
+  /* Increment & persist ticket */
+  const t = getNextTicket();
+  localStorage.setItem("ticketNo", t);
+
+  /* Fill PDF content */
+  const grossVal = document.getElementById("gross").value;
+  const tareVal  = document.getElementById("tare").value;
+  const netVal   = parseFloat(grossVal) - parseFloat(tareVal);
+
+  document.getElementById("ticket").innerText  = t;
+  document.getElementById("cname").innerText   = document.getElementById("customer").value;
+  document.getElementById("vno").innerText     = document.getElementById("vehicle").value;
+  document.getElementById("iname").innerText   = document.getElementById("item").value;
+  document.getElementById("sname").innerText   = document.getElementById("supplier").value;
+  document.getElementById("charge").innerText  = document.getElementById("charges").value;
+  document.getElementById("gweight").innerText = grossVal + " Kg";
+  document.getElementById("tweight").innerText = tareVal + " Kg";
+  document.getElementById("nweight").innerText = netVal + " Kg";
+  document.getElementById("date").innerText    = new Date().toLocaleString();
+
+  /* Bring stage on-screen invisibly so html2canvas measures correctly */
+  const stage = document.querySelector(".pdf-stage");
+  stage.style.left = "0";
+  stage.style.opacity = "0";
+
+  await new Promise(r => setTimeout(r, 250));
+
+  const element = document.getElementById("invoice");
+  const vehicleClean = (document.getElementById("vehicle").value || "slip").replace(/\s+/g, "");
+  const filename = 'WB-' + t + '-' + vehicleClean + '.pdf';
+
+  try {
+    await html2pdf().set({
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowHeight: 1123     /* A4 height in px @ 96dpi — caps capture height */
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all'] }
+    }).from(element).save();
+    showToast("Slip #" + t + " downloaded", "success");
+  } catch (e) {
+    /* Mobile fallback — open in new tab */
+    try {
+      const url = await html2pdf().from(element).outputPdf('bloburl');
+      window.open(url, '_blank');
+      showToast("Slip opened in new tab", "success");
+    } catch (e2) {
+      showToast("PDF generation failed", "error");
+    }
+  } finally {
+    stage.style.left = "-10000px";
+    stage.style.opacity = "1";
+    btn.disabled = false;
+    label.innerText = "Generate PDF";
+    refreshTicketDisplay();
+  }
+}
+
+/* ============ KEYBOARD UX ============ */
+/* Press Enter to move to next field on desktop */
+document.querySelectorAll('.form-card input').forEach((input, i, all) => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (i < all.length - 1) all[i + 1].focus();
+      else generatePDF();
+    }
+  });
+});
 </script>
 
 </body>
