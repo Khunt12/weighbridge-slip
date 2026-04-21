@@ -699,23 +699,7 @@ async function generatePDF() {
   document.getElementById("gweight").innerText = grossVal;
   document.getElementById("tweight").innerText = tareVal;
   document.getElementById("nweight").innerText = netVal;
-
-  /* Date/time formatting — DD/MM/YYYY and HH:MM:SS */
-  const pad = n => String(n).padStart(2, '0');
-  const fmtDate = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
-  const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
-  const now = new Date();
-  /* Use timestamps captured when user typed each weight; fallback to sensible defaults */
-  const gTime = window._grossTime || now;
-  const tTime = window._tareTime  || new Date(now.getTime() - 45000);  /* tare ~45s before */
-
-  document.getElementById("gdate").innerText = fmtDate(gTime);
-  document.getElementById("gtime").innerText = fmtTime(gTime);
-  document.getElementById("tdate").innerText = fmtDate(tTime);
-  document.getElementById("ttime").innerText = fmtTime(tTime);
-  document.getElementById("date").innerText  = fmtDate(now) + " " + fmtTime(now);
-
+  
   /* Bring stage on-screen invisibly so html2canvas measures correctly */
   const stage = document.querySelector(".pdf-stage");
   stage.style.left = "0";
