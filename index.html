@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Weighbridge Slip Generator</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+margin:30px;
+}
+
+.form-box{
+max-width:400px;
+}
+
+label{
+display:block;
+margin-top:10px;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:6px;
+margin-top:3px;
+}
+
+button{
+margin-top:20px;
+padding:10px 18px;
+font-size:15px;
+cursor:pointer;
+}
+
+/* PDF AREA */
+
+#invoice{
+width:210mm;
+height:297mm;
+position:relative;
+font-family:'Courier New', monospace;
+font-size:14px;
+background:white;
+}
+
+</style>
+</head>
+
+<body>
+
+
+<h2>Weighbridge Slip Generator</h2>
+
+
+<div class="form-box">
+
+<label>Customer Name</label>
+<input id="customer">
+
+<label>Vehicle Number</label>
+<input id="vehicle">
+
+<label>Item Name</label>
+<input id="item">
+
+<label>Supplier Name</label>
+<input id="supplier">
+
+<label>Charges</label>
+<input id="charges">
+
+<label>Gross Weight</label>
+<input id="gross" oninput="calcWeight()">
+
+<label>Tare Weight</label>
+<input id="tare" oninput="calcWeight()">
+
+<label>Net Weight</label>
+<input id="net" readonly>
+
+<button onclick="generatePDF()">Download PDF</button>
+
+</div>
+
+
+
+<!-- ===== PDF LAYOUT ===== -->
+
+<div id="invoice">
+
+
+<!-- HEADER -->
+
+<div style="
+position:absolute;
+top:38px;
+width:100%;
+text-align:center;
+line-height:18px;
+">
+
+<b style="font-size:22px; letter-spacing:1px;">
+PATEL WEIGH BRIDGE
+</b><br>
+
+<span style="font-size:12px;">
+AT. PATEL WEIGH BRIDGE NR TORAN HOTEL, VALTHAN
+</span><br>
+
+<span style="font-size:12px;">
+NH-8 KAMREJ-KADODARA HIGHWAY
+</span>
+
+</div>
+
+
+
+<!-- LABEL COLUMN -->
+
+<div style="
+position:absolute;
+top:130px;
+left:78px;
+line-height:24px;
+font-family:'Courier New', monospace;
+">
+
+Ticket&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Customer_Na&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Vehicle_No&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Item_Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Supplier_Name&nbsp;&nbsp;:<br>
+Charges&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Gross&nbsp;Weight&nbsp;&nbsp;&nbsp;:<br>
+Tare&nbsp;Weight&nbsp;&nbsp;&nbsp;&nbsp;:<br>
+Net&nbsp;Weight&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+
+</div>
+
+
+
+<!-- VALUE COLUMN -->
+
+<div style="
+position:absolute;
+top:130px;
+left:255px;
+line-height:24px;
+">
+
+<span id="ticket"></span><br>
+<span id="cname"></span><br>
+<span id="vno"></span><br>
+<span id="iname"></span><br>
+<span id="sname"></span><br>
+<span id="charge"></span><br>
+<span id="gweight"></span><br>
+<span id="tweight"></span><br>
+<span id="nweight"></span>
+
+</div>
+
+
+
+<!-- PRINT DATE -->
+
+<div style="
+position:absolute;
+top:360px;
+right:90px;
+font-size:13px;
+">
+
+Print Date : <span id="date"></span>
+
+</div>
+
+
+
+<!-- SIGNATURE -->
+
+<div style="
+position:absolute;
+top:470px;
+left:78px;
+font-size:13px;
+">
+
+Operator's Signature
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+
+/* AUTO NET WEIGHT */
+
+function calcWeight(){
+
+let gross = Number(document.getElementById("gross").value);
+let tare = Number(document.getElementById("tare").value);
+
+if(gross && tare){
+
+document.getElementById("net").value = gross - tare;
+
+}
+
+}
+
+
+
+/* AUTO TICKET NUMBER */
+
+let ticketNumber = localStorage.getItem("ticketNo");
+
+if(!ticketNumber){
+
+ticketNumber = 6637;
+
+}
+
+ticketNumber = Number(ticketNumber);
+
+
+
+/* GENERATE PDF */
+
+function generatePDF(){
+
+ticketNumber++;
+
+localStorage.setItem("ticketNo", ticketNumber);
+
+
+/* FILL VALUES */
+
+document.getElementById("ticket").innerText = ticketNumber;
+
+document.getElementById("cname").innerText =
+document.getElementById("customer").value;
+
+document.getElementById("vno").innerText =
+document.getElementById("vehicle").value;
+
+document.getElementById("iname").innerText =
+document.getElementById("item").value;
+
+document.getElementById("sname").innerText =
+document.getElementById("supplier").value;
+
+document.getElementById("charge").innerText =
+document.getElementById("charges").value;
+
+document.getElementById("gweight").innerText =
+document.getElementById("gross").value + " Kg";
+
+document.getElementById("tweight").innerText =
+document.getElementById("tare").value + " Kg";
+
+document.getElementById("nweight").innerText =
+document.getElementById("net").value + " Kg";
+
+
+/* PRINT DATE */
+
+let now = new Date();
+
+document.getElementById("date").innerText =
+now.toLocaleString();
+
+
+/* EXPORT PDF */
+
+let element = document.getElementById("invoice");
+
+html2pdf().set({
+
+margin:0,
+filename:'weighbridge-slip.pdf',
+image:{ type:'jpeg', quality:1 },
+html2canvas:{ scale:3 },
+jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' }
+
+}).from(element).save();
+
+}
+
+</script>
+
+
+</body>
+</html>
