@@ -411,6 +411,13 @@ button:disabled {
 <body>
 
 <div class="app">
+
+  <!-- BRAND HEADER -->
+  <header class="brand">
+    <h1>Patel<br>Weigh Bridge</h1>
+    <div class="sub">NH-8 Kamrej–Kadodara Hwy · Valthan</div>
+  </header>
+
   <!-- TICKET BAR -->
   <div class="ticket-bar">
     <span class="label">Next Ticket No.</span>
@@ -452,7 +459,7 @@ button:disabled {
 
     <div class="field">
       <label for="charges">Charges (₹)</label>
-      <input id="charges" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+      <input id="charges" type="text" inputmode="decimal" oninput="numOnly(this)" autocomplete="off" placeholder="0">
     </div>
 
     <div class="section-title" style="margin-top: 22px;">
@@ -463,11 +470,11 @@ button:disabled {
     <div class="weights-grid">
       <div class="field">
         <label for="gross">Gross (Kg)</label>
-        <input id="gross" type="text" inputmode="decimal" class="num-input" oninput="calcWeight()" placeholder="0">
+        <input id="gross" type="text" inputmode="decimal" class="num-input" oninput="numOnly(this); calcWeight()" placeholder="0">
       </div>
       <div class="field">
         <label for="tare">Tare (Kg)</label>
-        <input id="tare" type="text" inputmode="decimal" class="num-input" oninput="calcWeight()" placeholder="0">
+        <input id="tare" type="text" inputmode="decimal" class="num-input" oninput="numOnly(this); calcWeight()" placeholder="0">
       </div>
     </div>
 
@@ -562,10 +569,30 @@ button:disabled {
 </div>
 
 <script>
+/* ============ NUMERIC INPUT SANITIZER ============ */
+/* Strips non-numeric characters as the user types / pastes.
+   Allows digits and a single decimal point; blocks letters, symbols, negatives. */
+function numOnly(el) {
+  let v = el.value.replace(/[^0-9.]/g, '');   // keep only digits and dots
+  const parts = v.split('.');
+  if (parts.length > 2) {                      // collapse multiple dots to one
+    v = parts[0] + '.' + parts.slice(1).join('');
+  }
+  if (v !== el.value) {
+    el.value = v;
+    flashInvalid(el);                          // brief red flash so user notices
+  }
+}
+function flashInvalid(el) {
+  el.style.boxShadow = 'inset 0 -3px 0 #C62828';
+  clearTimeout(el._flashT);
+  el._flashT = setTimeout(() => { el.style.boxShadow = ''; }, 400);
+}
+
 /* ============ TICKET COUNTER ============ */
 function getNextTicket() {
   let t = Number(localStorage.getItem("ticketNo"));
-  if (!t || isNaN(t)) t = 0;
+  if (!t || isNaN(t)) t = 6637;
   return t + 1;
 }
 function refreshTicketDisplay() {
@@ -679,6 +706,14 @@ async function generatePDF() {
   const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
   const now = new Date();
+  /* Use timestamps captured when user typed each weight; fallback to sensible defaults */
+  const gTime = window._grossTime || now;
+  const tTime = window._tareTime  || new Date(now.getTime() - 45000);  /* tare ~45s before */
+
+  document.getElementById("gdate").innerText = fmtDate(gTime);
+  document.getElementById("gtime").innerText = fmtTime(gTime);
+  document.getElementById("tdate").innerText = fmtDate(tTime);
+  document.getElementById("ttime").innerText = fmtTime(tTime);
   document.getElementById("date").innerText  = fmtDate(now) + " " + fmtTime(now);
 
   /* Bring stage on-screen invisibly so html2canvas measures correctly */
@@ -724,6 +759,16 @@ async function generatePDF() {
     refreshTicketDisplay();
   }
 }
+
+/* ============ CAPTURE WEIGHING TIMESTAMPS ============ */
+/* Records the time when the operator enters each weight value,
+   so the printed slip shows the actual moment each was captured. */
+document.getElementById("gross").addEventListener("input", () => {
+  if (document.getElementById("gross").value) window._grossTime = new Date();
+});
+document.getElementById("tare").addEventListener("input", () => {
+  if (document.getElementById("tare").value) window._tareTime = new Date();
+});
 
 /* ============ KEYBOARD UX ============ */
 /* Press Enter to move to next field on desktop */
