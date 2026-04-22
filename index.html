@@ -382,8 +382,6 @@ button:disabled {
 #invoice .pd { position: absolute; right: 0; top: 0; }
 #invoice .wrow .wval  { position: absolute; left: 215px; width: 90px; text-align: right; }
 #invoice .wrow .wunit { position: absolute; left: 315px; width: 30px; }
-#invoice .wrow .wdate { position: absolute; left: 370px; width: 100px; }
-#invoice .wrow .wtime { position: absolute; left: 490px; width: 80px; }
 #invoice .slip-signature {
   position: absolute;
   top: 375px;
@@ -544,15 +542,11 @@ button:disabled {
         <span class="lbl">Gross Weight</span><span class="col">:</span>
         <span class="wval"><span id="gweight"></span></span>
         <span class="wunit">Kg</span>
-        <span class="wdate"><span id="gdate"></span></span>
-        <span class="wtime"><span id="gtime"></span></span>
       </div>
       <div class="srow wrow">
         <span class="lbl">Tare Weight *</span><span class="col">:</span>
         <span class="wval"><span id="tweight"></span></span>
         <span class="wunit">Kg</span>
-        <span class="wdate"><span id="tdate"></span></span>
-        <span class="wtime"><span id="ttime"></span></span>
       </div>
       <div class="srow wrow">
         <span class="lbl">Net Weight</span><span class="col">:</span>
@@ -699,7 +693,17 @@ async function generatePDF() {
   document.getElementById("gweight").innerText = grossVal;
   document.getElementById("tweight").innerText = tareVal;
   document.getElementById("nweight").innerText = netVal;
-  
+
+  /* Date/time formatting — DD/MM/YYYY and HH:MM:SS */
+  const pad = n => String(n).padStart(2, '0');
+  const fmtDate = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+  const now = new Date();
+  /* Use timestamps captured when user typed each weight; fallback to sensible defaults */
+
+  document.getElementById("date").innerText  = fmtDate(now) + " " + fmtTime(now);
+
   /* Bring stage on-screen invisibly so html2canvas measures correctly */
   const stage = document.querySelector(".pdf-stage");
   stage.style.left = "0";
