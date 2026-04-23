@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -181,13 +182,120 @@ html, body {
   text-align: right;
 }
 
-.weights-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+/* ===== WEIGHING CARDS (new design) ===== */
+.weigh-card {
+  border: 2px solid var(--line);
+  background: #FAFAF6;
+  padding: 14px 14px 12px 18px;
   margin-bottom: 12px;
+  position: relative;
 }
-.weights-grid .field { margin: 0; }
+.weigh-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--accent);
+}
+.weigh-card.tare::before { background: var(--ink); }
+
+.weigh-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.weigh-card-tag {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.weigh-card-tag .arrow { color: var(--accent); margin-right: 4px; }
+.weigh-card.tare .weigh-card-tag .arrow { color: var(--ink); }
+.weigh-card-unit {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.22em;
+  font-weight: 500;
+}
+
+.weigh-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  text-align: right;
+  border: 2px solid var(--line);
+  background: white;
+  color: var(--ink);
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: box-shadow 0.12s, background 0.12s;
+  letter-spacing: 0.02em;
+}
+.weigh-input::placeholder { color: #D4D4CD; font-weight: 500; }
+.weigh-input:focus {
+  outline: none;
+  background: #FFF7E6;
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+.weigh-time-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 8px;
+}
+.weigh-time {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  border: 2px solid var(--line);
+  background: white;
+  color: var(--ink);
+  min-height: 42px;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.weigh-time:focus {
+  outline: none;
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+.weigh-time::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.weigh-now {
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Archivo', sans-serif;
+  letter-spacing: 0.15em;
+  background: var(--ink);
+  color: var(--bg);
+  border: 2px solid var(--line);
+  cursor: pointer;
+  text-transform: uppercase;
+  min-height: 42px;
+  box-shadow: none;
+  transition: background 0.12s;
+}
+.weigh-now:active {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.weigh-card + .net-display { margin-top: 4px; }
 
 /* ===== NET WEIGHT DISPLAY ===== */
 .net-display {
@@ -338,58 +446,60 @@ button:disabled {
 .footer .dot { color: var(--accent); }
 
 /* ===== HIDDEN PDF STAGE ===== */
+/* A4 at 96dpi = 794 × 1123 px. Using px throughout for reliable html2canvas capture. */
 .pdf-stage {
-  position: fixed;
+  position: absolute;
   left: -10000px;
   top: 0;
+  width: 794px;
   pointer-events: none;
 }
 #invoice {
-  width: 210mm;
-  height: 295mm;
+  width: 794px;
   position: relative;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 14px;
   background: white;
   color: black;
-  overflow: hidden;
-  page-break-after: avoid;
-  page-break-inside: avoid;
-  padding: 28px 40px;
+  box-sizing: border-box;
+  padding: 50px 45px 40px;
 }
 #invoice .slip-header {
   text-align: center;
-  border-bottom: 1px solid #000;
-  padding-bottom: 8px;
-  margin-bottom: 16px;
+  border-bottom: 1.3px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 22px;
 }
 #invoice .slip-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
   letter-spacing: 0.5px;
   font-family: Arial, sans-serif;
+  margin-bottom: 6px;
 }
 #invoice .slip-sub {
-  font-size: 10.5px;
-  margin-top: 5px;
+  font-size: 11px;
   font-family: Arial, sans-serif;
+  font-weight: 500;
 }
-#invoice .slip-body { font-size: 13px; line-height: 24px; }
-#invoice .srow { position: relative; height: 24px; white-space: nowrap; }
-#invoice .lbl { display: inline-block; width: 115px; }
-#invoice .col { display: inline-block; width: 14px; }
+#invoice .slip-body { font-size: 14px; line-height: 26px; }
+#invoice .srow { position: relative; width: 100%; height: 26px; white-space: nowrap; }
+#invoice .lbl { display: inline-block; width: 130px; }
+#invoice .col { display: inline-block; width: 15px; }
 #invoice .val { display: inline-block; }
 #invoice .pd { position: absolute; right: 0; top: 0; }
-#invoice .wrow .wval  { position: absolute; left: 215px; width: 90px; text-align: right; }
-#invoice .wrow .wunit { position: absolute; left: 315px; width: 30px; }
+#invoice .wrow .wval  { position: absolute; left: 235px; width: 80px; text-align: right; }
+#invoice .wrow .wunit { position: absolute; left: 320px; width: 32px; }
+#invoice .wrow .wdate { position: absolute; left: 385px; width: 105px; }
+#invoice .wrow .wtime { position: absolute; left: 510px; width: 95px; }
 #invoice .slip-signature {
-  position: absolute;
-  top: 375px;
-  right: 50px;
+  text-align: right;
   font-weight: bold;
   text-decoration: underline;
-  font-size: 13px;
+  font-size: 14px;
   font-family: Arial, sans-serif;
+  margin-top: 50px;
+  padding-right: 15px;
 }
 
 /* ===== TINY SCREENS ===== */
@@ -465,14 +575,29 @@ button:disabled {
       Weight Reading
     </div>
 
-    <div class="weights-grid">
-      <div class="field">
-        <label for="gross">Gross (Kg)</label>
-        <input id="gross" type="text" inputmode="decimal" class="num-input" oninput="numOnly(this); calcWeight()" placeholder="0">
+    <div class="weigh-card">
+      <div class="weigh-card-head">
+        <span class="weigh-card-tag"><span class="arrow">◢</span> Gross Weighing</span>
+        <span class="weigh-card-unit">KG</span>
       </div>
-      <div class="field">
-        <label for="tare">Tare (Kg)</label>
-        <input id="tare" type="text" inputmode="decimal" class="num-input" oninput="numOnly(this); calcWeight()" placeholder="0">
+      <input id="gross" type="text" inputmode="decimal" class="weigh-input"
+             oninput="numOnly(this); calcWeight();" placeholder="0">
+      <div class="weigh-time-wrap">
+        <input id="grossTime" type="datetime-local" step="1" class="weigh-time">
+        <button type="button" class="weigh-now" onclick="setNow('gross')">Now</button>
+      </div>
+    </div>
+
+    <div class="weigh-card tare">
+      <div class="weigh-card-head">
+        <span class="weigh-card-tag"><span class="arrow">◢</span> Tare Weighing</span>
+        <span class="weigh-card-unit">KG</span>
+      </div>
+      <input id="tare" type="text" inputmode="decimal" class="weigh-input"
+             oninput="numOnly(this); calcWeight();" placeholder="0">
+      <div class="weigh-time-wrap">
+        <input id="tareTime" type="datetime-local" step="1" class="weigh-time">
+        <button type="button" class="weigh-now" onclick="setNow('tare')">Now</button>
       </div>
     </div>
 
@@ -523,16 +648,16 @@ button:disabled {
         <span class="pd">Print Date : <span id="date"></span></span>
       </div>
       <div class="srow">
-        <span class="lbl">Customer_Na</span><span class="col">:</span><span class="val"><span id="cname"></span></span>
+        <span class="lbl">Customer Name</span><span class="col">:</span><span class="val"><span id="cname"></span></span>
       </div>
       <div class="srow">
-        <span class="lbl">Vehicle_No</span><span class="col">:</span><span class="val"><span id="vno"></span></span>
+        <span class="lbl">Vehicle No</span><span class="col">:</span><span class="val"><span id="vno"></span></span>
       </div>
       <div class="srow">
-        <span class="lbl">Item_Name</span><span class="col">:</span><span class="val"><span id="iname"></span></span>
+        <span class="lbl">Item Name</span><span class="col">:</span><span class="val"><span id="iname"></span></span>
       </div>
       <div class="srow">
-        <span class="lbl">Supplier_Name</span><span class="col">:</span><span class="val"><span id="sname"></span></span>
+        <span class="lbl">Supplier Name</span><span class="col">:</span><span class="val"><span id="sname"></span></span>
       </div>
       <div class="srow">
         <span class="lbl">Charges</span><span class="col">:</span><span class="val"><span id="charge"></span></span>
@@ -542,11 +667,15 @@ button:disabled {
         <span class="lbl">Gross Weight</span><span class="col">:</span>
         <span class="wval"><span id="gweight"></span></span>
         <span class="wunit">Kg</span>
+        <span class="wdate"><span id="gdate"></span></span>
+        <span class="wtime"><span id="gtime"></span></span>
       </div>
       <div class="srow wrow">
         <span class="lbl">Tare Weight *</span><span class="col">:</span>
         <span class="wval"><span id="tweight"></span></span>
         <span class="wunit">Kg</span>
+        <span class="wdate"><span id="tdate"></span></span>
+        <span class="wtime"><span id="ttime"></span></span>
       </div>
       <div class="srow wrow">
         <span class="lbl">Net Weight</span><span class="col">:</span>
@@ -661,6 +790,7 @@ function resetForm() {
   ["customer","vehicle","item","supplier","charges","gross","tare","net"].forEach(id => {
     document.getElementById(id).value = "";
   });
+  fillDefaultTimes();              // reset pickers to current time
   calcWeight();
   showToast("Form cleared");
   document.getElementById("customer").focus();
@@ -679,88 +809,158 @@ async function generatePDF() {
   const t = getNextTicket();
   localStorage.setItem("ticketNo", t);
 
-  /* Fill PDF content */
+  /* Gather form values */
+  const customer = document.getElementById("customer").value;
+  const vehicle  = document.getElementById("vehicle").value;
+  const item     = document.getElementById("item").value;
+  const supplier = document.getElementById("supplier").value;
+  const charges  = document.getElementById("charges").value;
   const grossVal = document.getElementById("gross").value;
   const tareVal  = document.getElementById("tare").value;
   const netVal   = parseFloat(grossVal) - parseFloat(tareVal);
 
-  document.getElementById("ticket").innerText  = t;
-  document.getElementById("cname").innerText   = document.getElementById("customer").value;
-  document.getElementById("vno").innerText     = document.getElementById("vehicle").value;
-  document.getElementById("iname").innerText   = document.getElementById("item").value;
-  document.getElementById("sname").innerText   = document.getElementById("supplier").value;
-  document.getElementById("charge").innerText  = document.getElementById("charges").value;
-  document.getElementById("gweight").innerText = grossVal;
-  document.getElementById("tweight").innerText = tareVal;
-  document.getElementById("nweight").innerText = netVal;
-
-  /* Date/time formatting — DD/MM/YYYY and HH:MM:SS */
+  /* Date/time formatting */
   const pad = n => String(n).padStart(2, '0');
   const fmtDate = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
   const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
   const now = new Date();
-  /* Use timestamps captured when user typed each weight; fallback to sensible defaults */
+  const grossInput = document.getElementById("grossTime").value;
+  const tareInput  = document.getElementById("tareTime").value;
+  const gTime = grossInput ? new Date(grossInput) : now;
+  const tTime = tareInput  ? new Date(tareInput)  : now;
 
-  document.getElementById("date").innerText  = fmtDate(now) + " " + fmtTime(now);
-
-  /* Bring stage on-screen invisibly so html2canvas measures correctly */
-  const stage = document.querySelector(".pdf-stage");
-  stage.style.left = "0";
-  stage.style.opacity = "0";
-
-  await new Promise(r => setTimeout(r, 250));
-
-  const element = document.getElementById("invoice");
-  const vehicleClean = (document.getElementById("vehicle").value || "slip").replace(/\s+/g, "");
+  const vehicleClean = (vehicle || "slip").replace(/\s+/g, "");
   const filename = 'WB-' + t + '-' + vehicleClean + '.pdf';
 
   try {
-    await html2pdf().set({
-      margin: 0,
-      filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        windowHeight: 1123     /* A4 height in px @ 96dpi — caps capture height */
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all'] }
-    }).from(element).save();
+    /* Direct jsPDF drawing — precise mm coordinates, guaranteed single A4 page */
+    const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!jsPDFCtor) throw new Error("jsPDF library not loaded");
+
+    const doc = new jsPDFCtor({
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait',
+      compress: true
+    });
+
+    /* ── Layout (mm) ─────────────────────────────────────── */
+    const PAGE_W    = 210;
+    const LEFT      = 15;
+    const RIGHT     = 195;
+    const LABEL_X   = LEFT;
+    const COLON_X   = 50;
+    const VALUE_X   = 54;
+    const WVAL_X    = 95;     /* right edge of weight value */
+    const UNIT_X    = 100;    /* "Kg" */
+    const DATE_X    = 120;
+    const TIME_X    = 155;
+
+    /* ── Header ──────────────────────────────────────────── */
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('PATEL WEIGH BRIDGE', PAGE_W / 2, 22, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(
+      'AT. PATEL WEIGH BRIDGE, NR TORAN HOTEL, VALTHAN, NH-8,KAMREJ-KADODARA HIGHWAY',
+      PAGE_W / 2, 28, { align: 'center' }
+    );
+
+    /* Horizontal rule under header */
+    doc.setLineWidth(0.3);
+    doc.line(LEFT, 32, RIGHT, 32);
+
+    /* ── Body rows ───────────────────────────────────────── */
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(11);
+
+    let y = 42;
+    const LH = 7;
+
+    /* Row 1 — Ticket No + Print Date */
+    doc.text('Ticket No',    LABEL_X, y);
+    doc.text(':',             COLON_X, y);
+    doc.text(String(t),       VALUE_X, y);
+    doc.text(`Print Date : ${fmtDate(now)} ${fmtTime(now)}`, RIGHT, y, { align: 'right' });
+    y += LH;
+
+    const writeRow = (lbl, val) => {
+      doc.text(lbl,     LABEL_X, y);
+      doc.text(':',     COLON_X, y);
+      doc.text(val || '', VALUE_X, y);
+      y += LH;
+    };
+    writeRow('Customer Name',   customer);
+    writeRow('Vehicle No',    vehicle);
+    writeRow('Item Name',     item);
+    writeRow('Supplier Name', supplier);
+    writeRow('Charges',       charges);
+
+    /* Weight rows with value | Kg | Date | Time columns */
+    const writeWeightRow = (lbl, val, dateStr, timeStr) => {
+      doc.text(lbl, LABEL_X, y);
+      doc.text(':', COLON_X, y);
+      doc.text(String(val), WVAL_X, y, { align: 'right' });
+      doc.text('Kg', UNIT_X, y);
+      if (dateStr) doc.text(dateStr, DATE_X, y);
+      if (timeStr) doc.text(timeStr, TIME_X, y);
+      y += LH;
+    };
+    writeWeightRow('Gross Weight',  grossVal, fmtDate(gTime), fmtTime(gTime));
+    writeWeightRow('Tare Weight *', tareVal,  fmtDate(tTime), fmtTime(tTime));
+    writeWeightRow('Net Weight',    netVal,   null,           null);
+
+    /* ── Operator Signature — bottom right ───────────────── */
+    const sigText = "OPERATOR'S SIGNATURE";
+    const sigY = y + 25;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    const sigW = doc.getTextWidth(sigText);
+    const sigX = RIGHT - sigW;
+    doc.text(sigText, sigX, sigY);
+    doc.setLineWidth(0.3);
+    doc.line(sigX, sigY + 0.8, sigX + sigW, sigY + 0.8);
+
+    /* ── Save ───────────────────────────────────────────── */
+    doc.save(filename);
     showToast("Slip #" + t + " downloaded", "success");
   } catch (e) {
-    /* Mobile fallback — open in new tab */
-    try {
-      const url = await html2pdf().from(element).outputPdf('bloburl');
-      window.open(url, '_blank');
-      showToast("Slip opened in new tab", "success");
-    } catch (e2) {
-      showToast("PDF generation failed", "error");
-    }
+    console.error('PDF generation error:', e);
+    showToast("PDF failed: " + (e.message || "unknown error"), "error");
   } finally {
-    stage.style.left = "-10000px";
-    stage.style.opacity = "1";
     btn.disabled = false;
     label.innerText = "Generate PDF";
     refreshTicketDisplay();
   }
 }
 
-/* ============ CAPTURE WEIGHING TIMESTAMPS ============ */
-/* Records the time when the operator enters each weight value,
-   so the printed slip shows the actual moment each was captured. */
-document.getElementById("gross").addEventListener("input", () => {
-  if (document.getElementById("gross").value) window._grossTime = new Date();
-});
-document.getElementById("tare").addEventListener("input", () => {
-  if (document.getElementById("tare").value) window._tareTime = new Date();
-});
+/* ============ DATE-TIME DEFAULTS ============ */
+/* Both pickers are pre-filled with the current moment on page load,
+   and can be tapped to change. "Now" button resets to current time. */
+function nowLocalISO() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function fillDefaultTimes() {
+  document.getElementById('grossTime').value = nowLocalISO();
+  document.getElementById('tareTime').value  = nowLocalISO();
+}
+function setNow(which) {
+  document.getElementById(which + 'Time').value = nowLocalISO();
+  showToast(which.toUpperCase() + ' time set to now', 'success');
+}
+/* Initialise on load */
+fillDefaultTimes();
 
 /* ============ KEYBOARD UX ============ */
-/* Press Enter to move to next field on desktop */
-document.querySelectorAll('.form-card input').forEach((input, i, all) => {
+/* Press Enter to jump to next text field on desktop.
+   Skips datetime pickers (they have native UI and shouldn't trap Enter). */
+const enterFields = document.querySelectorAll('.form-card input:not([type="datetime-local"]):not([type="hidden"])');
+enterFields.forEach((input, i, all) => {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
